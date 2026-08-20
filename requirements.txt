@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+google-genai
+qdrant-client
+pymupdf==1.26.5
+ragas 
+datasets
