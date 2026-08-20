@@ -1,138 +1,117 @@
 # GyaanAI
 
-GyaanAI is a document-based Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents, ask questions about their content, and receive answers supported by retrieved document sources and evaluation metrics.
+GyaanAI is an end-to-end Retrieval-Augmented Generation (RAG) application that lets users upload PDF documents, ask questions about their contents, and receive grounded answers with retrieved sources and response-quality metrics.
 
 ## Deployed Application
 
 **Live URL:**  
 https://gyaanai.onrender.com/
 
-## Features
+## What It Demonstrates
 
-- PDF document upload
-- Automatic document indexing
-- PDF text extraction
-- Document chunking with overlapping chunks
-- Semantic retrieval
-- Keyword-based retrieval
-- Hybrid retrieval using Reciprocal Rank Fusion
-- Gemini-powered query analysis
-- Gemini-powered answer generation
-- Source references with page and chunk information
-- RAG evaluation metrics
-  - Faithfulness
-  - Answer Relevancy
-  - Context Precision
-- Temporary document storage
-- Automatic document expiration and cleanup
-- Document filename preservation
-- Light and dark themes
-- Responsive React interface
+- End-to-end RAG pipeline design and implementation
+- Hybrid retrieval combining semantic and keyword search
+- Document-scoped vector retrieval using Qdrant
+- Grounded answer generation with source attribution
+- LLM-as-a-judge evaluation
+- Temporary document lifecycle and automatic cleanup
+- FastAPI backend and React/Vite frontend integration
+- Production deployment on Render
 
-## Tech Stack
+## Key Features
 
-### Frontend
-
-- React
-- Vite
-- JavaScript
-- CSS
-- Lucide React
-
-### Backend
-
-- Python
-- FastAPI
-- Uvicorn
-- Pydantic
-
-### AI / RAG
-
-- Google Gemini API
+- PDF upload and text extraction
+- Overlapping document chunking
 - Gemini embeddings
-- Qdrant
-- Semantic retrieval
-- Keyword retrieval
+- Semantic retrieval with Qdrant
+- Keyword-based retrieval
 - Reciprocal Rank Fusion
-- LLM-based RAG evaluation
+- Query analysis before retrieval
+- Grounded Gemini answer generation
+- Page- and chunk-level source references
+- Faithfulness, Answer Relevancy, and Context Precision metrics
+- 30-minute temporary document lifecycle
+- Automatic cleanup of expired PDFs, metadata, and vectors
+- Document restoration after browser refresh
+- Responsive light and dark UI
 
-## Project Structure
-
-```text
-gyaan_ai/
-│
-├── backend/
-│   └── app/
-│       ├── api/
-│       ├── core/
-│       ├── documents/
-│       ├── embeddings/
-│       ├── generation/
-│       ├── query/
-│       ├── retrieval/
-│       └── storage/
-│
-├── evaluation/
-│   └── service.py
-│
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── index.html
-│   ├── package.json
-│   └── package-lock.json
-│
-├── data/
-│
-├── .gitignore
-├── README.md
-├── requirements.txt
-└── test.py
-````
-
-## RAG Pipeline
+## Architecture
 
 ```text
 PDF Upload
     ↓
-PDF Text Extraction
-    ↓
-Document Chunking
-    ↓
-Embedding Generation
-    ↓
-Qdrant Storage
-    ↓
+Text Extraction → Chunking → Embeddings → Qdrant
+
 User Question
     ↓
 Query Analysis
     ↓
-┌───────────────────────┐
-│ Semantic Retrieval    │
-│ Keyword Retrieval     │
-└───────────┬───────────┘
+ ┌──────────────────────┐
+ │ Semantic Retrieval   │
+ │ Keyword Retrieval    │
+ └──────────┬───────────┘
             ↓
-Reciprocal Rank Fusion
+ Reciprocal Rank Fusion
             ↓
-Relevant Contexts
+     Relevant Context
             ↓
-Gemini Answer Generation
+      Gemini Generation
             ↓
-RAG Evaluation
+      Answer + Sources
             ↓
-Answer + Sources + Metrics
+       RAG Evaluation
+            ↓
+Faithfulness / Relevancy / Precision
 ```
+
+## Technical Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React, Vite, JavaScript, CSS, Lucide React |
+| Backend | Python, FastAPI, Uvicorn, Pydantic |
+| LLM | Google Gemini API |
+| Embeddings | Gemini embeddings |
+| Vector Database | Qdrant |
+| PDF Processing | PyMuPDF |
+| Retrieval | Semantic + keyword retrieval + Reciprocal Rank Fusion |
+| Evaluation | LLM-as-a-judge |
+| Deployment | Render |
+
+## RAG Pipeline
+
+### 1. Document Ingestion
+
+PDF pages are extracted and divided into overlapping chunks while retaining document, chunk, and page metadata.
+
+### 2. Embedding and Indexing
+
+Each chunk is embedded and stored in Qdrant. Retrieval is scoped to the selected document.
+
+### 3. Query Understanding
+
+The question is analyzed into a search-oriented query and keywords for the retrieval stages.
+
+### 4. Hybrid Retrieval
+
+Semantic and keyword result lists are combined with Reciprocal Rank Fusion to improve retrieval robustness.
+
+### 5. Grounded Generation
+
+Gemini receives the retrieved context and is instructed to answer only from that context and cite supporting pages.
+
+### 6. Evaluation
+
+The generated answer and retrieved context are evaluated for faithfulness, answer relevancy, and context precision.
 
 ## Evaluation Metrics
 
 ### Faithfulness
 
-Measures how well the generated answer is supported by the retrieved document context.
+Measures how well the generated answer is supported by the retrieved context.
 
 ```text
-0.0 → Unsupported or mostly hallucinated
+0.0 → Unsupported, contradicted, or mostly hallucinated
 1.0 → Completely supported by the retrieved context
 ```
 
@@ -147,94 +126,27 @@ Measures how directly the generated answer addresses the user's question.
 
 ### Context Precision
 
-Measures how relevant the retrieved contexts are to answering the user's question.
+Measures how relevant the retrieved contexts are to answering the question.
 
 ```text
-0.0 → Mostly irrelevant retrieved context
-1.0 → Highly relevant retrieved context
+0.0 → Retrieved context is mostly irrelevant
+1.0 → Retrieved context is highly relevant
 ```
 
-All evaluation scores are normalized between `0` and `1`.
+Scores are normalized between 0 and 1.
 
-## Backend Setup
+## Document Lifecycle
 
-Create a virtual environment:
-
-```bash
-python -m venv venv
-```
-
-Activate it on Windows:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Create a local `.env` file:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key
-QDRANT_URL=your_qdrant_url
-QDRANT_API_KEY=your_qdrant_api_key
-```
-
-Run the backend:
-
-```bash
-uvicorn backend.app.main:app --reload
-```
-
-Backend:
+Uploaded documents expire after 30 minutes.
 
 ```text
-http://127.0.0.1:8000
+Upload → Index → Query → Expiry → Cleanup
+                         ├── local PDF
+                         ├── metadata
+                         └── Qdrant vectors
 ```
 
-API documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-## Frontend Setup
-
-Move into the frontend directory:
-
-```bash
-cd frontend
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Create the frontend environment variable:
-
-```env
-VITE_API_URL=http://127.0.0.1:8000
-```
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
-
-## API Endpoints
+## API
 
 ### Upload Document
 
@@ -242,7 +154,15 @@ http://localhost:5173
 POST /documents/upload
 ```
 
-Uploads and indexes a PDF document.
+Upload and index a PDF.
+
+### List Active Documents
+
+```http
+GET /documents
+```
+
+Return active, non-expired documents.
 
 ### Ask a Question
 
@@ -258,7 +178,7 @@ Example request:
 }
 ```
 
-Example response structure:
+Example response:
 
 ```json
 {
@@ -281,25 +201,62 @@ Example response structure:
 }
 ```
 
-## Document Lifecycle
-
-Uploaded documents are temporary.
+## Project Structure
 
 ```text
-Upload PDF
-    ↓
-Index document
-    ↓
-Store metadata and vectors
-    ↓
-Ask questions
-    ↓
-Document expires
-    ↓
-Cleanup
-    ├── Delete local PDF
-    ├── Delete metadata
-    └── Delete Qdrant vectors
+gyaan_ai/
+├── backend/app/
+│   ├── api/
+│   ├── core/
+│   ├── documents/
+│   ├── embeddings/
+│   ├── generation/
+│   ├── query/
+│   ├── retrieval/
+│   └── storage/
+├── evaluation/
+├── frontend/src/
+├── data/
+├── requirements.txt
+├── README.md
+└── test.py
+```
+
+## Local Development
+
+### Backend
+
+```bash
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn backend.app.main:app --reload
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+API documentation:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:5173
 ```
 
 ## Environment Variables
@@ -307,44 +264,71 @@ Cleanup
 ### Backend
 
 ```env
-GEMINI_API_KEY=
-QDRANT_URL=
-QDRANT_API_KEY=
+GEMINI_API_KEY=your_gemini_api_key
+QDRANT_URL=your_qdrant_url
+QDRANT_API_KEY=your_qdrant_api_key
 ```
 
 ### Frontend
 
 ```env
-VITE_API_URL=
+VITE_API_URL=https://gyaan-ai-x60f.onrender.com/
 ```
 
-Never commit `.env` files or API keys to the repository.
+Secrets are stored outside the repository. `.env` files, virtual environments, `node_modules`, build output, and temporary application data are excluded by `.gitignore`.
 
 ## Deployment
 
-The application is deployed on Render.
+The application is deployed on Render as separate frontend and backend services.
 
-Frontend:
+### Frontend
 
 ```text
-https://gyaanai.onrender.com/
+Root Directory: frontend
+Build Command: npm install && npm run build
+Publish Directory: dist
 ```
 
-The frontend communicates with the deployed FastAPI backend through `VITE_API_URL`.
+### Backend
 
-Environment variables are configured separately on the deployment platform.
-
-## Development Workflow
-
-Run the backend:
-
-```bash
-uvicorn backend.app.main:app --reload
+```text
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+Python Version: 3.13
 ```
 
-Run the frontend in a separate terminal:
+The frontend receives the deployed FastAPI backend URL through:
 
-```bash
-cd frontend
-npm run dev
+```env
+VITE_API_URL=https://your-backend-url
 ```
+
+CORS is configured for local development and the deployed frontend origin.
+
+## Engineering Highlights
+
+- Hybrid retrieval reduces dependence on a single retrieval strategy.
+- Document-scoped retrieval prevents unrelated documents from entering the context.
+- Source metadata is preserved through retrieval and returned by the API.
+- Evaluation is separated from generation so response quality can be inspected independently.
+- Temporary expiry reduces long-term retention of uploaded documents.
+- The codebase separates ingestion, retrieval, generation, evaluation, and storage concerns.
+
+## Security
+
+- API keys are stored in environment variables.
+- `.env` files are excluded from Git.
+- Uploaded documents are temporary.
+- Expired documents are removed from local storage, metadata storage, and Qdrant.
+- API keys are not exposed through the frontend.
+
+## Repository
+
+https://github.com/tisya-ahuja/gyaan_ai
+
+## Future Improvements
+
+- Persistent or object storage for stronger cloud durability
+- Automated unit and integration tests in CI
+- Repeatable retrieval-quality benchmarks and evaluation datasets
+- Structured logging and request-level observability
