@@ -3,7 +3,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import ReactMarkdown from "react-markdown";
 
 import {
   ChevronDown,
@@ -20,6 +19,169 @@ import {
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://127.0.0.1:8000";
+
+
+/*
+  Lightweight Markdown renderer.
+  Kept dependency-free because the repository currently only lists
+  React, ReactDOM and lucide-react in frontend/package.json.
+*/
+function renderInlineMarkdown(text, keyPrefix = "") {
+  const tokens = [];
+  const pattern =
+    /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*]+\*|_[^_]+_)/g;
+
+  let last = 0;
+  let match;
+  let index = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) {
+      tokens.push(
+        <React.Fragment key={`${keyPrefix}-text-${index++}`}>
+          {text.slice(last, match.index)}
+        </React.Fragment>
+      );
+    }
+
+    const token = match[0];
+    let node;
+
+    if (
+      (token.startsWith("**") && token.endsWith("**")) ||
+      (token.startsWith("__") && token.endsWith("__"))
+    ) {
+      node = (
+        <strong key={`${keyPrefix}-strong-${index++}`}>
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith("`") && token.endsWith("`")) {
+      node = (
+        <code key={`${keyPrefix}-code-${index++}`}>
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else {
+      node = (
+        <em key={`${keyPrefix}-em-${index++}`}>
+          {token.slice(1, -1)}
+        </em>
+      );
+    }
+
+    tokens.push(node);
+    last = pattern.lastIndex;
+  }
+
+  if (last < text.length) {
+    tokens.push(
+      <React.Fragment key={`${keyPrefix}-tail`}>
+        {text.slice(last)}
+      </React.Fragment>
+    );
+  }
+
+  return tokens;
+}
+
+function MarkdownAnswer({ text }) {
+  const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+  const blocks = [];
+  let paragraph = [];
+  let list = null;
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+
+    const content = paragraph.join(" ").trim();
+    if (content) {
+      blocks.push(
+        <p key={`p-${blocks.length}`}>
+          {renderInlineMarkdown(content, `p-${blocks.length}`)}
+        </p>
+      );
+    }
+    paragraph = [];
+  };
+
+  const flushList = () => {
+    if (!list || !list.items.length) return;
+
+    const ListTag = list.ordered ? "ol" : "ul";
+    blocks.push(
+      <ListTag key={`list-${blocks.length}`}>
+        {list.items.map((item, index) => (
+          <li key={`item-${index}`}>
+            {renderInlineMarkdown(item, `list-${index}`)}
+          </li>
+        ))}
+      </ListTag>
+    );
+    list = null;
+  };
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trimEnd();
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      flushList();
+
+      const level = heading[1].length;
+      const Heading = `h${level}`;
+      blocks.push(
+        <Heading key={`h-${blocks.length}`}>
+          {renderInlineMarkdown(
+            heading[2],
+            `h-${blocks.length}`
+          )}
+        </Heading>
+      );
+      return;
+    }
+
+    const unordered = trimmed.match(/^[-*+]\s+(.+)$/);
+    const ordered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+
+    if (unordered || ordered) {
+      flushParagraph();
+
+      const isOrdered = Boolean(ordered);
+      if (!list || list.ordered !== isOrdered) {
+        flushList();
+        list = { ordered: isOrdered, items: [] };
+      }
+
+      list.items.push((unordered || ordered)[1]);
+      return;
+    }
+
+    if (trimmed === "---" || trimmed === "***") {
+      flushParagraph();
+      flushList();
+      blocks.push(<hr key={`hr-${blocks.length}`} />);
+      return;
+    }
+
+    flushList();
+    paragraph.push(trimmed);
+  });
+
+  flushParagraph();
+  flushList();
+
+  return <div className="markdown-answer">{blocks}</div>;
+}
+
 
 function App() {
   const [documents, setDocuments] = useState([]);
@@ -482,26 +644,13 @@ function App() {
 
           <div className="brand">
 
-            <div
-              className="brand-mark"
-              style={{
-                width: "58px",
-                height: "58px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                background: "transparent",
-              }}
-            >
+            <div className="brand-mark">
               <img
-                src="/favicon.ico"
-                alt="GyaanAI logo"
+                src="/logo.svg"
+                alt="GyaanAI"
                 style={{
-                  width: "100%",
-                  height: "100%",
+                  width: "58px",
+                  height: "58px",
                   objectFit: "contain",
                   display: "block",
                 }}
@@ -883,68 +1032,11 @@ function App() {
 
                 <div className="answer-panel">
 
-                  <div className="answer markdown-answer">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p style={{ margin: "0 0 1rem", lineHeight: 1.8 }}>
-                            {children}
-                          </p>
-                        ),
-                        ul: ({ children }) => (
-                          <ul
-                            style={{
-                              margin: "0.75rem 0 1rem 1.5rem",
-                              paddingLeft: "1rem",
-                              lineHeight: 1.8,
-                            }}
-                          >
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol
-                            style={{
-                              margin: "0.75rem 0 1rem 1.5rem",
-                              paddingLeft: "1rem",
-                              lineHeight: 1.8,
-                            }}
-                          >
-                            {children}
-                          </ol>
-                        ),
-                        li: ({ children }) => (
-                          <li style={{ marginBottom: "0.5rem" }}>
-                            {children}
-                          </li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong style={{ fontWeight: 700 }}>
-                            {children}
-                          </strong>
-                        ),
-                        h1: ({ children }) => (
-                          <h1 style={{ margin: "1.25rem 0 0.75rem" }}>
-                            {children}
-                          </h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 style={{ margin: "1.25rem 0 0.75rem" }}>
-                            {children}
-                          </h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 style={{ margin: "1.25rem 0 0.75rem" }}>
-                            {children}
-                          </h3>
-                        ),
-                      }}
-                    >
-                      {answer}
-                    </ReactMarkdown>
+                  <div className="answer">
+                    <MarkdownAnswer text={answer} />
                   </div>
 
-                </div>
+                  </div>
 
 
                 {/* METRICS */}
