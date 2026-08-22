@@ -73,7 +73,7 @@ function App() {
     }
 
     favicon.type = "image/png";
-    favicon.href = "/favicon.png";
+    favicon.href = "/favicon.ico";
   }, []);
 
   /*
