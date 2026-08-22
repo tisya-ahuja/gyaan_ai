@@ -62,18 +62,21 @@ function App() {
   useEffect(() => {
     document.title = "GyaanAI";
 
-    let favicon = document.querySelector(
-      'link[rel="icon"]'
-    );
+    document
+      .querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]')
+      .forEach((link) => link.remove());
 
-    if (!favicon) {
-      favicon = document.createElement("link");
-      favicon.rel = "icon";
-      document.head.appendChild(favicon);
-    }
-
-    favicon.type = "image/png";
+    const favicon = document.createElement("link");
+    favicon.rel = "icon";
+    favicon.type = "image/x-icon";
     favicon.href = "/favicon.ico";
+    document.head.appendChild(favicon);
+
+    const shortcutIcon = document.createElement("link");
+    shortcutIcon.rel = "shortcut icon";
+    shortcutIcon.type = "image/x-icon";
+    shortcutIcon.href = "/favicon.ico";
+    document.head.appendChild(shortcutIcon);
   }, []);
 
   /*
@@ -479,8 +482,30 @@ function App() {
 
           <div className="brand">
 
-            <div className="brand-mark">
-              G
+            <div
+              className="brand-mark"
+              style={{
+                width: "58px",
+                height: "58px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                background: "transparent",
+              }}
+            >
+              <img
+                src="/favicon.ico"
+                alt="GyaanAI logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
             </div>
 
             <div className="brand-copy">
