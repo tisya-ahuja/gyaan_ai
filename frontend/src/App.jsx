@@ -471,7 +471,6 @@ function App() {
               style={{
                 width: "58px",
                 height: "58px",
-                borderRadius: "50%",
                 overflow: "hidden",
                 display: "flex",
                 alignItems: "center",
