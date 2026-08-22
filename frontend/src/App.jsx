@@ -3,6 +3,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import ReactMarkdown from "react-markdown";
 
 import {
   ChevronDown,
@@ -51,6 +52,29 @@ function App() {
       darkMode
     );
   }, [darkMode]);
+
+  /*
+  ============================================================
+  BROWSER TAB / FAVICON
+  ============================================================
+  */
+
+  useEffect(() => {
+    document.title = "GyaanAI";
+
+    let favicon = document.querySelector(
+      'link[rel="icon"]'
+    );
+
+    if (!favicon) {
+      favicon = document.createElement("link");
+      favicon.rel = "icon";
+      document.head.appendChild(favicon);
+    }
+
+    favicon.type = "image/png";
+    favicon.href = "/favicon.png";
+  }, []);
 
   /*
   ============================================================
@@ -834,8 +858,65 @@ function App() {
 
                 <div className="answer-panel">
 
-                  <div className="answer">
-                    {answer}
+                  <div className="answer markdown-answer">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p style={{ margin: "0 0 1rem", lineHeight: 1.8 }}>
+                            {children}
+                          </p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul
+                            style={{
+                              margin: "0.75rem 0 1rem 1.5rem",
+                              paddingLeft: "1rem",
+                              lineHeight: 1.8,
+                            }}
+                          >
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol
+                            style={{
+                              margin: "0.75rem 0 1rem 1.5rem",
+                              paddingLeft: "1rem",
+                              lineHeight: 1.8,
+                            }}
+                          >
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li style={{ marginBottom: "0.5rem" }}>
+                            {children}
+                          </li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong style={{ fontWeight: 700 }}>
+                            {children}
+                          </strong>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 style={{ margin: "1.25rem 0 0.75rem" }}>
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 style={{ margin: "1.25rem 0 0.75rem" }}>
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 style={{ margin: "1.25rem 0 0.75rem" }}>
+                            {children}
+                          </h3>
+                        ),
+                      }}
+                    >
+                      {answer}
+                    </ReactMarkdown>
                   </div>
 
                 </div>
