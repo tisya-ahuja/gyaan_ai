@@ -115,19 +115,33 @@ html.dark body {
 }
 
 .brand-mark {
-  width: 48px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: var(--yellow);
+  flex-shrink: 0;
 
-  color: var(--brown);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 
-  font-family: "Baskervville", serif;
-  font-size: 27px;
+.brand-mark img {
+  width: 58px;
+  height: 58px;
+
+  display: block;
+
+  object-fit: contain;
+
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .brand-name {
