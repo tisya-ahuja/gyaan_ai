@@ -55,32 +55,6 @@ function App() {
 
   /*
   ============================================================
-  BROWSER TAB / FAVICON
-  ============================================================
-  */
-
-  useEffect(() => {
-    document.title = "GyaanAI";
-
-    document
-      .querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]')
-      .forEach((link) => link.remove());
-
-    const favicon = document.createElement("link");
-    favicon.rel = "icon";
-    favicon.type = "image/x-icon";
-    favicon.href = "/favicon.ico";
-    document.head.appendChild(favicon);
-
-    const shortcutIcon = document.createElement("link");
-    shortcutIcon.rel = "shortcut icon";
-    shortcutIcon.type = "image/x-icon";
-    shortcutIcon.href = "/favicon.ico";
-    document.head.appendChild(shortcutIcon);
-  }, []);
-
-  /*
-  ============================================================
   LOAD DOCUMENTS FROM BACKEND
   ============================================================
   */
@@ -497,7 +471,7 @@ function App() {
               }}
             >
               <img
-                src="/favicon.ico"
+                src="/gyaanai_logo.png"
                 alt="GyaanAI logo"
                 style={{
                   width: "100%",
