@@ -122,7 +122,6 @@ html.dark body {
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
   background: var(--yellow);
 
   color: var(--brown);
